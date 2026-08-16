@@ -65,6 +65,7 @@
 			);
 			name = ProgressDiary;
 			packageProductDependencies = (
+				CC000000000000000000001B /* DiaryFeature */,
 			);
 			productName = ProgressDiary;
 			productReference = 21F8840330322E9700E7CCE7 /* ProgressDiary.app */;
@@ -98,6 +99,9 @@
 			productRefGroup = 21F8840430322E9700E7CCE7 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
+			localPackages = (
+				CC000000000000000000001A /* DiaryFeature */,
+			);
 			targets = (
 				21F8840230322E9700E7CCE7 /* ProgressDiary */,
 			);
@@ -123,6 +127,21 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		CC000000000000000000001A /* DiaryFeature */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/DiaryFeature;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CC000000000000000000001B /* DiaryFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CC000000000000000000001A /* DiaryFeature */;
+			productName = DiaryFeature;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		21F8840C30322E9800E7CCE7 /* Debug */ = {
