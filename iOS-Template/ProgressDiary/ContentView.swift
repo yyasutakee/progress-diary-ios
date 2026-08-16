@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  iOS-Template
+//  ProgressDiary
 //
 //  Created by Yuhei Yasutake on 2026/08/17.
 //
