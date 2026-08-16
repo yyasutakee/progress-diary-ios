@@ -1,0 +1,8 @@
+*.xcuserstate
+*.log
+*.txt
+.DS_Store
+xcuserdata/
+*.xcscmblueprint
+.build/
+.swiftpm/
