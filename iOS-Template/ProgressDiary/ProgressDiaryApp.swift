@@ -1,6 +1,6 @@
 //
-//  iOS_TemplateApp.swift
-//  iOS-Template
+//  ProgressDiaryApp.swift
+//  ProgressDiary
 //
 //  Created by Yuhei Yasutake on 2026/08/17.
 //
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct iOS_TemplateApp: App {
+struct ProgressDiaryApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
