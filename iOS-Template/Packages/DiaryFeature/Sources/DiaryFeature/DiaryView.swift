@@ -2,6 +2,7 @@ import SwiftUI
 
 public struct DiaryView<Model: DiaryViewModel>: View {
     @ObservedObject public var model: Model
+    @State private var addEntryHapticTrigger: Int = 0
 
     public init(model: Model) {
         self.model = model
@@ -10,8 +11,10 @@ public struct DiaryView<Model: DiaryViewModel>: View {
     public var body: some View {
         NavigationStack {
             mainContent
-                .navigationTitle("Progress Diary")
-                .toolbar { addEntryButton }
+                .toolbar {
+                    navigationTitle
+                    addEntryButton
+                }
                 .sheet(isPresented: addEntryBinding) {
                     AddEntrySheet(model: model)
                 }
@@ -51,12 +54,21 @@ public struct DiaryView<Model: DiaryViewModel>: View {
     private var addEntryButton: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                model.send(.addEntryTapped)
+                presentAddEntrySheet()
             } label: {
                 Image(systemName: "plus")
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
+            .sensoryFeedback(.impact(weight: .light), trigger: addEntryHapticTrigger)
+        }
+    }
+
+    private var navigationTitle: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            Text("Progress Diary")
+                .font(.headline)
+                .fontDesign(.rounded)
         }
     }
 
@@ -65,6 +77,11 @@ public struct DiaryView<Model: DiaryViewModel>: View {
             get: { model.isShowingAddEntry },
             set: { model.isShowingAddEntry = $0 }
         )
+    }
+
+    private func presentAddEntrySheet() {
+        addEntryHapticTrigger += 1
+        model.send(.addEntryTapped)
     }
 }
 
@@ -88,6 +105,7 @@ private struct DiaryEntryRow: View {
 private struct AddEntrySheet<Model: DiaryViewModel>: View {
     @ObservedObject var model: Model
     @State private var text: String = ""
+    @FocusState private var isEntryFieldFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -95,6 +113,7 @@ private struct AddEntrySheet<Model: DiaryViewModel>: View {
                 Section {
                     TextField("What did you progress today?", text: $text, axis: .vertical)
                         .lineLimit(3...6)
+                        .focused($isEntryFieldFocused)
                 }
             }
             .navigationTitle("New Entry")
@@ -103,28 +122,36 @@ private struct AddEntrySheet<Model: DiaryViewModel>: View {
                 cancelButton
                 submitButton
             }
+            .task {
+                isEntryFieldFocused = true
+            }
         }
     }
 
     private var cancelButton: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
-            Button("Cancel") {
+            Button {
                 model.isShowingAddEntry = false
+            } label: {
+                Text("Cancel")
+                    .fixedSize()
+                    .frame(minWidth: 60, minHeight: 44)
+                    .contentShape(Rectangle())
             }
-            .frame(minWidth: 44, minHeight: 44)
-            .contentShape(Rectangle())
         }
     }
 
     private var submitButton: some ToolbarContent {
         ToolbarItem(placement: .confirmationAction) {
-            Button("Add") {
+            Button {
                 let trimmed: String = text.trimmingCharacters(in: .whitespaces)
                 model.send(.entryTextSubmitted(trimmed))
+            } label: {
+                Text("Add")
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .disabled(text.trimmingCharacters(in: .whitespaces).isEmpty)
-            .frame(minWidth: 44, minHeight: 44)
-            .contentShape(Rectangle())
         }
     }
 }
