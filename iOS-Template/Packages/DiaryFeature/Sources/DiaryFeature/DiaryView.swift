@@ -78,14 +78,23 @@ public struct DiaryView<Model: DiaryViewModel>: View {
 
     private static func configureRoundedNavigationTitleFont() {
         let navigationBarAppearance: UINavigationBar = UINavigationBar.appearance()
-        navigationBarAppearance.titleTextAttributes = [.font: makeRoundedFont(for: .headline)]
-        navigationBarAppearance.largeTitleTextAttributes = [.font: makeRoundedFont(for: .largeTitle)]
+        navigationBarAppearance.titleTextAttributes = [
+            .font: makeScaledRoundedFont(size: 17, weight: .semibold, textStyle: .headline)
+        ]
+        navigationBarAppearance.largeTitleTextAttributes = [
+            .font: makeScaledRoundedFont(size: 34, weight: .bold, textStyle: .largeTitle)
+        ]
     }
 
-    private static func makeRoundedFont(for textStyle: UIFont.TextStyle) -> UIFont {
-        let preferredDescriptor: UIFontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: textStyle)
-        let roundedDescriptor: UIFontDescriptor = preferredDescriptor.withDesign(.rounded) ?? preferredDescriptor
-        return UIFont(descriptor: roundedDescriptor, size: 0)
+    private static func makeScaledRoundedFont(
+        size: CGFloat,
+        weight: UIFont.Weight,
+        textStyle: UIFont.TextStyle
+    ) -> UIFont {
+        let baseFont: UIFont = UIFont.systemFont(ofSize: size, weight: weight)
+        let roundedDescriptor: UIFontDescriptor = baseFont.fontDescriptor.withDesign(.rounded) ?? baseFont.fontDescriptor
+        let roundedFont: UIFont = UIFont(descriptor: roundedDescriptor, size: size)
+        return UIFontMetrics(forTextStyle: textStyle).scaledFont(for: roundedFont)
     }
 }
 
