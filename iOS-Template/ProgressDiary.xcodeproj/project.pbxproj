@@ -132,7 +132,7 @@
 		CC000000000000000000001A /* DiaryFeature */ = {
 			isa = XCLocalSwiftPackageReference;
 			packageKind = localSourcePackage;
-			relativePath = Packages/DiaryFeature;
+			relativePath = "Packages/DiaryFeature";
 		};
 /* End XCLocalSwiftPackageReference section */
 
