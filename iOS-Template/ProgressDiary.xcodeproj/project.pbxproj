@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		CC000000000000000000001C /* DiaryFeature in Frameworks */ = {isa = PBXBuildFile; productRef = CC000000000000000000001B /* DiaryFeature */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		21F8840330322E9700E7CCE7 /* ProgressDiary.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ProgressDiary.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC000000000000000000001C /* DiaryFeature in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
