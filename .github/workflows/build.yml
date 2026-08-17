@@ -13,34 +13,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Select Xcode
-        run: |
-          ls /Applications | grep Xcode
-          sudo xcode-select -s /Applications/Xcode_26.0.app
-          xcodebuild -version
-
-      - name: Verify package structure
-        run: |
-          echo "=== iOS-Template structure ==="
-          ls iOS-Template/
-          echo "=== Packages ==="
-          ls iOS-Template/Packages/
-          echo "=== DiaryFeature ==="
-          ls iOS-Template/Packages/DiaryFeature/
-          echo "=== Package.swift ==="
-          cat iOS-Template/Packages/DiaryFeature/Package.swift
-          echo "=== Sources ==="
-          find iOS-Template/Packages/DiaryFeature/Sources -name "*.swift" | head -20
-
-      - name: Swift package describe
-        run: |
-          cd iOS-Template/Packages/DiaryFeature && swift package describe
-
-      - name: Resolve package dependencies
-        run: |
-          xcodebuild -resolvePackageDependencies \
-            -project iOS-Template/ProgressDiary.xcodeproj \
-            -scheme ProgressDiary \
-            -clonedSourcePackagesDirPath iOS-Template/Packages
+        run: sudo xcode-select -s /Applications/Xcode_26.0.app
 
       - name: Build
         run: |
@@ -48,5 +21,4 @@ jobs:
             -project iOS-Template/ProgressDiary.xcodeproj \
             -scheme ProgressDiary \
             -destination 'generic/platform=iOS Simulator' \
-            -clonedSourcePackagesDirPath iOS-Template/Packages \
             CODE_SIGNING_ALLOWED=NO
