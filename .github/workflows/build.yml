@@ -18,7 +18,7 @@ jobs:
       - name: Build
         run: |
           xcodebuild build \
-            -project iOS-Template/ProgressDiary.xcodeproj \
+            -workspace iOS-Template/ProgressDiary.xcworkspace \
             -scheme ProgressDiary \
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO
