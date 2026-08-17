@@ -104,8 +104,8 @@
 			productRefGroup = 21F8840430322E9700E7CCE7 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
-			localPackages = (
-				CC000000000000000000001A /* XCLocalSwiftPackageReference "Packages/DiaryFeature" */,
+			packageReferences = (
+				CC000000000000000000001A /* XCLocalSwiftPackageReference "DiaryFeature" */,
 			);
 			targets = (
 				21F8840230322E9700E7CCE7 /* ProgressDiary */,
@@ -134,7 +134,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		CC000000000000000000001A /* XCLocalSwiftPackageReference "Packages/DiaryFeature" */ = {
+		CC000000000000000000001A /* XCLocalSwiftPackageReference "DiaryFeature" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/DiaryFeature;
 		};
@@ -143,7 +143,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		CC000000000000000000001B /* DiaryFeature */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CC000000000000000000001A /* XCLocalSwiftPackageReference "Packages/DiaryFeature" */;
+			package = CC000000000000000000001A /* XCLocalSwiftPackageReference "DiaryFeature" */;
 			productName = DiaryFeature;
 		};
 /* End XCSwiftPackageProductDependency section */
