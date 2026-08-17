@@ -100,7 +100,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			localPackages = (
-				CC000000000000000000001A /* DiaryFeature */,
+				CC000000000000000000001A /* XCLocalSwiftPackageReference "DiaryFeature" */,
 			);
 			targets = (
 				21F8840230322E9700E7CCE7 /* ProgressDiary */,
@@ -129,17 +129,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		CC000000000000000000001A /* DiaryFeature */ = {
+		CC000000000000000000001A /* XCLocalSwiftPackageReference "DiaryFeature" */ = {
 			isa = XCLocalSwiftPackageReference;
-			packageKind = localSourcePackage;
-			relativePath = "Packages/DiaryFeature";
+			relativePath = Packages/DiaryFeature;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		CC000000000000000000001B /* DiaryFeature */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CC000000000000000000001A /* DiaryFeature */;
+			package = CC000000000000000000001A /* XCLocalSwiftPackageReference "DiaryFeature" */;
 			productName = DiaryFeature;
 		};
 /* End XCSwiftPackageProductDependency section */
