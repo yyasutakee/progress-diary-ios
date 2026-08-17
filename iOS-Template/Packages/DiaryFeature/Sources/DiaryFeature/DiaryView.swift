@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 public struct DiaryView<Model: DiaryViewModel>: View {
     @ObservedObject public var model: Model
@@ -6,15 +7,14 @@ public struct DiaryView<Model: DiaryViewModel>: View {
 
     public init(model: Model) {
         self.model = model
+        Self.configureRoundedNavigationTitleFont()
     }
 
     public var body: some View {
         NavigationStack {
             mainContent
-                .toolbar {
-                    navigationTitle
-                    addEntryButton
-                }
+                .navigationTitle("Progress Diary")
+                .toolbar { addEntryButton }
                 .sheet(isPresented: addEntryBinding) {
                     AddEntrySheet(model: model)
                 }
@@ -64,14 +64,6 @@ public struct DiaryView<Model: DiaryViewModel>: View {
         }
     }
 
-    private var navigationTitle: some ToolbarContent {
-        ToolbarItem(placement: .principal) {
-            Text("Progress Diary")
-                .font(.headline)
-                .fontDesign(.rounded)
-        }
-    }
-
     private var addEntryBinding: Binding<Bool> {
         Binding(
             get: { model.isShowingAddEntry },
@@ -82,6 +74,18 @@ public struct DiaryView<Model: DiaryViewModel>: View {
     private func presentAddEntrySheet() {
         addEntryHapticTrigger += 1
         model.send(.addEntryTapped)
+    }
+
+    private static func configureRoundedNavigationTitleFont() {
+        let navigationBarAppearance: UINavigationBar = UINavigationBar.appearance()
+        navigationBarAppearance.titleTextAttributes = [.font: makeRoundedFont(for: .headline)]
+        navigationBarAppearance.largeTitleTextAttributes = [.font: makeRoundedFont(for: .largeTitle)]
+    }
+
+    private static func makeRoundedFont(for textStyle: UIFont.TextStyle) -> UIFont {
+        let preferredDescriptor: UIFontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: textStyle)
+        let roundedDescriptor: UIFontDescriptor = preferredDescriptor.withDesign(.rounded) ?? preferredDescriptor
+        return UIFont(descriptor: roundedDescriptor, size: 0)
     }
 }
 

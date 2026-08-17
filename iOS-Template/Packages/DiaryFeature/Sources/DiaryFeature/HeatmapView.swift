@@ -17,9 +17,14 @@ public struct HeatmapView: View {
     }
 
     public var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            weeksRow
-                .padding(.vertical, 4)
+        ScrollViewReader { scrollViewProxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                weeksRow
+                    .padding(.vertical, 4)
+            }
+            .task {
+                await scrollToToday(using: scrollViewProxy)
+            }
         }
     }
 
@@ -40,7 +45,17 @@ public struct HeatmapView: View {
         }
     }
 
+    @ViewBuilder
     private func dayCell(_ date: Date?) -> some View {
+        if let date {
+            dayCellShape(for: date)
+                .id(makeDayKey(for: date))
+        } else {
+            dayCellShape(for: nil)
+        }
+    }
+
+    private func dayCellShape(for date: Date?) -> some View {
         RoundedRectangle(cornerRadius: 2)
             .fill(dayCellColor(for: date))
             .frame(width: cellSize, height: cellSize)
@@ -52,7 +67,16 @@ public struct HeatmapView: View {
     }
 
     private func isDayActive(_ date: Date) -> Bool {
-        activeDayKeys.contains(Self.dayKeyFormatter.string(from: date))
+        activeDayKeys.contains(makeDayKey(for: date))
+    }
+
+    private func makeDayKey(for date: Date) -> String {
+        Self.dayKeyFormatter.string(from: date)
+    }
+
+    private func scrollToToday(using scrollViewProxy: ScrollViewProxy) async {
+        await Task.yield()
+        scrollViewProxy.scrollTo(makeDayKey(for: Date()), anchor: .center)
     }
 
     private func buildCurrentYearWeeks() -> [[Date?]] {
