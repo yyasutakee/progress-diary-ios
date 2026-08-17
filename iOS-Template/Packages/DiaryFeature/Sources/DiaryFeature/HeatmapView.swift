@@ -48,7 +48,7 @@ public struct HeatmapView: View {
 
     private func dayCellColor(for date: Date?) -> Color {
         guard let date else { return .clear }
-        return isDayActive(date) ? .accentColor : Color(.systemFill)
+        return isDayActive(date) ? .yellow : Color(.systemFill)
     }
 
     private func isDayActive(_ date: Date) -> Bool {
