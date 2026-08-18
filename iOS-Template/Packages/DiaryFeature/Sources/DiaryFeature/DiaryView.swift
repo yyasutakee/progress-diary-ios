@@ -14,9 +14,15 @@ public struct DiaryView<Model: DiaryViewModel>: View {
         NavigationStack {
             mainContent
                 .navigationTitle("Progress Diary")
-                .toolbar { addEntryButton }
+                .toolbar {
+                    listMenu
+                    addEntryButton
+                }
                 .sheet(isPresented: addEntryBinding) {
                     AddEntrySheet(model: model)
+                }
+                .sheet(isPresented: addListBinding) {
+                    AddListSheet(model: model)
                 }
         }
     }
@@ -24,31 +30,75 @@ public struct DiaryView<Model: DiaryViewModel>: View {
     private var mainContent: some View {
         VStack(spacing: 0) {
             heatmapSection
-            entryList
+            pagedEntryLists
         }
     }
 
     private var heatmapSection: some View {
-        HeatmapView(activeDayKeys: model.activeDayKeys)
+        HeatmapView(activeDayKeys: activeDayKeysForSelectedList)
             .padding(.horizontal)
             .padding(.vertical, 8)
     }
 
-    private var entryList: some View {
-        List {
-            ForEach(model.entries) { entry in
+    private var pagedEntryLists: some View {
+        TabView(selection: selectedListBinding) {
+            ForEach(model.lists) { list in
+                entryList(for: list)
+                    .tag(list.id)
+            }
+        }
+        .tabViewStyle(.page(indexDisplayMode: .never))
+    }
+
+    private func entryList(for list: DiaryListItem) -> some View {
+        let entries: [DiaryEntryItem] = model.entriesByListID[list.id] ?? []
+        return List {
+            ForEach(entries) { entry in
                 DiaryEntryRow(item: entry)
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
             }
             .onDelete { indexSet in
-                for index in indexSet {
-                    model.send(.deleteEntry(model.entries[index].id))
-                }
+                for index in indexSet { model.send(.deleteEntry(entries[index].id)) }
             }
         }
         .listStyle(.plain)
+    }
+
+    private var listMenu: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Menu {
+                ForEach(model.lists) { list in
+                    Button {
+                        model.send(.listSelected(list.id))
+                    } label: {
+                        if list.id == model.selectedListID {
+                            Label(list.name, systemImage: "checkmark")
+                        } else {
+                            Text(list.name)
+                        }
+                    }
+                }
+                Divider()
+                Button {
+                    model.send(.addListTapped)
+                } label: {
+                    Label("New List", systemImage: "plus")
+                }
+                if model.lists.count > 1, let selectedListID = model.selectedListID {
+                    Button(role: .destructive) {
+                        model.send(.deleteList(selectedListID))
+                    } label: {
+                        Label("Delete Current List", systemImage: "trash")
+                    }
+                }
+            } label: {
+                Image(systemName: "list.bullet")
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+        }
     }
 
     private var addEntryButton: some ToolbarContent {
@@ -69,6 +119,22 @@ public struct DiaryView<Model: DiaryViewModel>: View {
             get: { model.isShowingAddEntry },
             set: { model.isShowingAddEntry = $0 }
         )
+    }
+
+    private var addListBinding: Binding<Bool> {
+        Binding(get: { model.isShowingAddList }, set: { model.isShowingAddList = $0 })
+    }
+
+    private var selectedListBinding: Binding<UUID> {
+        Binding(
+            get: { model.selectedListID ?? model.lists.first?.id ?? UUID() },
+            set: { model.send(.listSelected($0)) }
+        )
+    }
+
+    private var activeDayKeysForSelectedList: Set<String> {
+        guard let selectedListID = model.selectedListID else { return Set<String>() }
+        return model.activeDayKeysByListID[selectedListID] ?? Set<String>()
     }
 
     private func presentAddEntrySheet() {
@@ -95,6 +161,46 @@ public struct DiaryView<Model: DiaryViewModel>: View {
         let roundedDescriptor: UIFontDescriptor = baseFont.fontDescriptor.withDesign(.rounded) ?? baseFont.fontDescriptor
         let roundedFont: UIFont = UIFont(descriptor: roundedDescriptor, size: size)
         return UIFontMetrics(forTextStyle: textStyle).scaledFont(for: roundedFont)
+    }
+}
+
+private struct AddListSheet<Model: DiaryViewModel>: View {
+    @ObservedObject var model: Model
+    @State private var name: String = ""
+    @FocusState private var isNameFieldFocused: Bool
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                TextField("List name", text: $name)
+                    .focused($isNameFieldFocused)
+            }
+            .navigationTitle("New List")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        model.isShowingAddList = false
+                    } label: {
+                        Text("Cancel")
+                            .frame(minWidth: 60, minHeight: 44)
+                            .contentShape(Rectangle())
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        let trimmedName: String = name.trimmingCharacters(in: .whitespacesAndNewlines)
+                        model.send(.listNameSubmitted(trimmedName))
+                    } label: {
+                        Text("Add")
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+            .task { isNameFieldFocused = true }
+        }
     }
 }
 

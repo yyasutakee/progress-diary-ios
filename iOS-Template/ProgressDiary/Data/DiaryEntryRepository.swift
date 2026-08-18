@@ -3,6 +3,9 @@ import Foundation
 
 protocol DiaryEntryRepository {
     var entriesPublisher: AnyPublisher<[DiaryEntry], Never> { get }
-    func addEntry(text: String)
+    var listsPublisher: AnyPublisher<[DiaryList], Never> { get }
+    func addEntry(text: String, to listID: UUID)
     func deleteEntry(_ entry: DiaryEntry)
+    func addList(name: String)
+    func deleteList(_ list: DiaryList)
 }

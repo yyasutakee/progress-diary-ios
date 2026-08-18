@@ -1,9 +1,13 @@
+import Combine
 import Foundation
 
 @MainActor
 public protocol DiaryViewModel: ObservableObject {
-    var entries: [DiaryEntryItem] { get }
-    var activeDayKeys: Set<String> { get }
+    var lists: [DiaryListItem] { get }
+    var entriesByListID: [UUID: [DiaryEntryItem]] { get }
+    var activeDayKeysByListID: [UUID: Set<String>] { get }
+    var selectedListID: UUID? { get }
     var isShowingAddEntry: Bool { get set }
+    var isShowingAddList: Bool { get set }
     func send(_ event: DiaryEvent)
 }

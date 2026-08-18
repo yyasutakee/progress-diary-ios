@@ -4,4 +4,8 @@ public enum DiaryEvent {
     case addEntryTapped
     case entryTextSubmitted(String)
     case deleteEntry(UUID)
+    case listSelected(UUID)
+    case addListTapped
+    case listNameSubmitted(String)
+    case deleteList(UUID)
 }

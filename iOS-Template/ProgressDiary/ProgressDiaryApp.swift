@@ -9,7 +9,7 @@ struct ProgressDiaryApp: App {
     init() {
         let container: ModelContainer
         do {
-            container = try ModelContainer(for: DiaryEntryRecord.self)
+            container = try ModelContainer(for: DiaryEntryRecord.self, DiaryListRecord.self)
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }

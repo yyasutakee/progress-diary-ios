@@ -4,9 +4,12 @@ import DiaryFeature
 
 @MainActor
 final class DiaryViewStore: DiaryViewModel {
-    @Published private(set) var entries: [DiaryEntryItem] = []
-    @Published private(set) var activeDayKeys: Set<String> = Set<String>()
+    @Published private(set) var lists: [DiaryListItem] = []
+    @Published private(set) var entriesByListID: [UUID: [DiaryEntryItem]] = [:]
+    @Published private(set) var activeDayKeysByListID: [UUID: Set<String>] = [:]
+    @Published private(set) var selectedListID: UUID? = nil
     @Published var isShowingAddEntry: Bool = false
+    @Published var isShowingAddList: Bool = false
 
     private let appStore: AppStore
     private var cancellables: Set<AnyCancellable> = Set<AnyCancellable>()
@@ -23,6 +26,7 @@ final class DiaryViewStore: DiaryViewModel {
         return f
     }()
 
+    // WHY: the view store owns only the feature-facing projection while AppStore remains the shared state owner.
     init(appStore: AppStore) {
         self.appStore = appStore
         observeStoreChanges()
@@ -36,10 +40,20 @@ final class DiaryViewStore: DiaryViewModel {
         case .addEntryTapped:
             isShowingAddEntry = true
         case .entryTextSubmitted(let text):
-            appStore.addEntry(text: text)
+            guard let selectedListID else { return }
+            appStore.addEntry(text: text, to: selectedListID)
             isShowingAddEntry = false
         case .deleteEntry(let id):
             deleteEntryMatchingID(id)
+        case .listSelected(let id):
+            appStore.selectList(id)
+        case .addListTapped:
+            isShowingAddList = true
+        case .listNameSubmitted(let name):
+            appStore.addList(name: name)
+            isShowingAddList = false
+        case .deleteList(let id):
+            deleteListMatchingID(id)
         }
     }
 
@@ -54,8 +68,10 @@ final class DiaryViewStore: DiaryViewModel {
     // WHY: state is a parameter so there is no route to accidentally read
     // a stale snapshot from a different moment inside this method.
     private func recompute(from state: AppState) {
-        entries = state.entries.map(makeDiaryEntryItem)
-        activeDayKeys = buildActiveDayKeys(from: state.entries)
+        lists = state.lists.map(makeDiaryListItem)
+        entriesByListID = buildEntriesByListID(from: state.entries)
+        activeDayKeysByListID = buildActiveDayKeysByListID(from: state.entries)
+        selectedListID = state.selectedListID
     }
 
     // WHY: maps the domain value type to a display-only model so DiaryFeature
@@ -68,10 +84,25 @@ final class DiaryViewStore: DiaryViewModel {
         )
     }
 
+    // WHY: maps list names into the package-owned shape so persistence identifiers stay outside the feature package.
+    private func makeDiaryListItem(from list: DiaryList) -> DiaryListItem {
+        DiaryListItem(id: list.id, name: list.name)
+    }
+
     // WHY: builds a set of date strings so the heatmap can check membership
     // in O(1) rather than scanning the full entries array per cell.
     private func buildActiveDayKeys(from entries: [DiaryEntry]) -> Set<String> {
         Set(entries.map { Self.dayKeyFormatter.string(from: $0.createdAt) })
+    }
+
+    // WHY: grouping once lets each page render its own entries without repeatedly scanning the complete domain collection.
+    private func buildEntriesByListID(from entries: [DiaryEntry]) -> [UUID: [DiaryEntryItem]] {
+        Dictionary(grouping: entries, by: { $0.listID }).mapValues { $0.map(makeDiaryEntryItem) }
+    }
+
+    // WHY: each heatmap needs only the dates belonging to its page, keeping list navigation and calendar state aligned.
+    private func buildActiveDayKeysByListID(from entries: [DiaryEntry]) -> [UUID: Set<String>] {
+        Dictionary(grouping: entries, by: { $0.listID }).mapValues { buildActiveDayKeys(from: $0) }
     }
 
     // WHY: resolves the domain entry by id before deletion so the view layer
@@ -79,5 +110,11 @@ final class DiaryViewStore: DiaryViewModel {
     private func deleteEntryMatchingID(_ id: UUID) {
         guard let entry: DiaryEntry = appStore.state.entries.first(where: { $0.id == id }) else { return }
         appStore.deleteEntry(entry)
+    }
+
+    // WHY: resolving the selected domain list here keeps deletion events opaque to the feature package.
+    private func deleteListMatchingID(_ id: UUID) {
+        guard let list: DiaryList = appStore.state.lists.first(where: { $0.id == id }) else { return }
+        appStore.deleteList(list)
     }
 }
