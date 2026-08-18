@@ -132,7 +132,18 @@ public struct DiaryView<Model: DiaryViewModel>: View {
         }
     }
 
+    @ViewBuilder
     private var floatingAddEntryButton: some View {
+        if #available(iOS 26.0, *) {
+            floatingAddEntryButtonBase
+                .glassEffect(.regular, in: .circle)
+        } else {
+            floatingAddEntryButtonBase
+                .background(.ultraThinMaterial, in: Circle())
+        }
+    }
+
+    private var floatingAddEntryButtonBase: some View {
         Button {
             presentAddEntrySheet()
         } label: {
@@ -143,7 +154,6 @@ public struct DiaryView<Model: DiaryViewModel>: View {
         }
         .foregroundStyle(.primary)
         .buttonStyle(.plain)
-        .glassEffect(.regular, in: .circle)
         .sensoryFeedback(.impact(weight: .light), trigger: addEntryHapticTrigger)
     }
 
