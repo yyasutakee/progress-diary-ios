@@ -24,6 +24,9 @@ public struct DiaryView<Model: DiaryViewModel>: View {
                 .sheet(isPresented: addListBinding) {
                     AddListSheet(model: model)
                 }
+                .sheet(isPresented: listSettingsBinding) {
+                    listSettingsSheet
+                }
         }
     }
 
@@ -35,7 +38,10 @@ public struct DiaryView<Model: DiaryViewModel>: View {
     }
 
     private var heatmapSection: some View {
-        HeatmapView(activeDayKeys: activeDayKeysForSelectedList)
+        HeatmapView(
+            activeDayKeys: activeDayKeysForSelectedList,
+            activeColor: heatmapColorForSelectedList.color
+        )
             .padding(.horizontal)
             .padding(.vertical, 8)
     }
@@ -70,14 +76,23 @@ public struct DiaryView<Model: DiaryViewModel>: View {
         ToolbarItem(placement: .topBarLeading) {
             Menu {
                 ForEach(model.lists) { list in
-                    Button {
-                        model.send(.listSelected(list.id))
-                    } label: {
-                        if list.id == model.selectedListID {
-                            Label(list.name, systemImage: "checkmark")
-                        } else {
-                            Text(list.name)
+                    Menu {
+                        Button {
+                            model.send(.listSelected(list.id))
+                        } label: {
+                            if list.id == model.selectedListID {
+                                Label("Select", systemImage: "checkmark")
+                            } else {
+                                Text("Select")
+                            }
                         }
+                        Button {
+                            model.send(.listSettingsTapped(list.id))
+                        } label: {
+                            Label("List Settings", systemImage: "slider.horizontal.3")
+                        }
+                    } label: {
+                        Label(list.name, systemImage: DiaryHeatmapColor(rawValue: list.heatmapColorID)?.rawValue == nil ? "list.bullet" : "circle.fill")
                     }
                 }
                 Divider()
@@ -125,6 +140,17 @@ public struct DiaryView<Model: DiaryViewModel>: View {
         Binding(get: { model.isShowingAddList }, set: { model.isShowingAddList = $0 })
     }
 
+    private var listSettingsBinding: Binding<Bool> {
+        Binding(get: { model.isShowingListSettings }, set: { model.isShowingListSettings = $0 })
+    }
+
+    @ViewBuilder
+    private var listSettingsSheet: some View {
+        if let editingList = model.lists.first(where: { $0.id == model.editingListID }) {
+            ListSettingsSheet(model: model, list: editingList)
+        }
+    }
+
     private var selectedListBinding: Binding<UUID> {
         Binding(
             get: { model.selectedListID ?? model.lists.first?.id ?? UUID() },
@@ -135,6 +161,12 @@ public struct DiaryView<Model: DiaryViewModel>: View {
     private var activeDayKeysForSelectedList: Set<String> {
         guard let selectedListID = model.selectedListID else { return Set<String>() }
         return model.activeDayKeysByListID[selectedListID] ?? Set<String>()
+    }
+
+    private var heatmapColorForSelectedList: DiaryHeatmapColor {
+        guard let selectedListID = model.selectedListID,
+              let list = model.lists.first(where: { $0.id == selectedListID }) else { return .yellow }
+        return DiaryHeatmapColor(rawValue: list.heatmapColorID) ?? .yellow
     }
 
     private func presentAddEntrySheet() {
@@ -161,6 +193,60 @@ public struct DiaryView<Model: DiaryViewModel>: View {
         let roundedDescriptor: UIFontDescriptor = baseFont.fontDescriptor.withDesign(.rounded) ?? baseFont.fontDescriptor
         let roundedFont: UIFont = UIFont(descriptor: roundedDescriptor, size: size)
         return UIFontMetrics(forTextStyle: textStyle).scaledFont(for: roundedFont)
+    }
+}
+
+private struct ListSettingsSheet<Model: DiaryViewModel>: View {
+    @ObservedObject var model: Model
+    let list: DiaryListItem
+
+    private let columns: [GridItem] = [GridItem(.adaptive(minimum: 64), spacing: 16)]
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Heatmap Color") {
+                    LazyVGrid(columns: columns, spacing: 16) {
+                        ForEach(DiaryHeatmapColor.allCases) { color in
+                            Button {
+                                model.send(.heatmapColorSelected(color.id))
+                            } label: {
+                                VStack(spacing: 6) {
+                                    Circle()
+                                        .fill(color.color)
+                                        .frame(width: 32, height: 32)
+                                        .overlay {
+                                            if color.id == list.heatmapColorID {
+                                                Image(systemName: "checkmark")
+                                                    .font(.caption.bold())
+                                                    .foregroundStyle(.white)
+                                            }
+                                        }
+                                    Text(color.displayName)
+                                        .font(.caption)
+                                        .foregroundStyle(.primary)
+                                }
+                                .frame(minWidth: 44, minHeight: 56)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.vertical, 8)
+                }
+            }
+            .navigationTitle(list.name)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        model.isShowingListSettings = false
+                    }
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
+                }
+            }
+        }
     }
 }
 

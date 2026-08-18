@@ -8,4 +8,6 @@ public enum DiaryEvent {
     case addListTapped
     case listNameSubmitted(String)
     case deleteList(UUID)
+    case listSettingsTapped(UUID)
+    case heatmapColorSelected(String)
 }

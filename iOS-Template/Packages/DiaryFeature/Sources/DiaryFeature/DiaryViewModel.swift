@@ -7,7 +7,9 @@ public protocol DiaryViewModel: ObservableObject {
     var entriesByListID: [UUID: [DiaryEntryItem]] { get }
     var activeDayKeysByListID: [UUID: Set<String>] { get }
     var selectedListID: UUID? { get }
+    var editingListID: UUID? { get }
     var isShowingAddEntry: Bool { get set }
     var isShowingAddList: Bool { get set }
+    var isShowingListSettings: Bool { get set }
     func send(_ event: DiaryEvent)
 }

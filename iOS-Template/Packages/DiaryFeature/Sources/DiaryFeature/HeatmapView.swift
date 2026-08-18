@@ -2,6 +2,7 @@ import SwiftUI
 
 public struct HeatmapView: View {
     public let activeDayKeys: Set<String>
+    public let activeColor: Color
 
     private let cellSize: CGFloat = 10
     private let cellGap: CGFloat = 2
@@ -12,8 +13,9 @@ public struct HeatmapView: View {
         return f
     }()
 
-    public init(activeDayKeys: Set<String>) {
+    public init(activeDayKeys: Set<String>, activeColor: Color = .yellow) {
         self.activeDayKeys = activeDayKeys
+        self.activeColor = activeColor
     }
 
     public var body: some View {
@@ -63,7 +65,7 @@ public struct HeatmapView: View {
 
     private func dayCellColor(for date: Date?) -> Color {
         guard let date else { return .clear }
-        return isDayActive(date) ? .yellow : Color(.systemFill)
+        return isDayActive(date) ? activeColor : Color(.systemFill)
     }
 
     private func isDayActive(_ date: Date) -> Bool {

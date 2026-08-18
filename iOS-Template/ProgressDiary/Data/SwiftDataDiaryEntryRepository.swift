@@ -22,12 +22,14 @@ final class DiaryEntryRecord {
 final class DiaryListRecord {
     var id: UUID
     var name: String
+    var heatmapColorID: String?
     var createdAt: Date
 
     // WHY: gives each persisted list its own identity so pages can remain selected across state updates.
     init(name: String) {
         self.id = UUID()
         self.name = name
+        self.heatmapColorID = "yellow"
         self.createdAt = Date()
     }
 }
@@ -102,6 +104,17 @@ final class SwiftDataDiaryEntryRepository: DiaryEntryRepository {
         loadAndPublishEntries()
     }
 
+    // WHY: persists a list's visual identity separately so changing a color never touches its entries.
+    func updateListHeatmapColor(listID: UUID, colorID: String) {
+        let descriptor: FetchDescriptor<DiaryListRecord> = FetchDescriptor<DiaryListRecord>(
+            predicate: #Predicate { $0.id == listID }
+        )
+        guard let record: DiaryListRecord = try? modelContext.fetch(descriptor).first else { return }
+        record.heatmapColorID = colorID
+        saveContext()
+        loadAndPublishLists()
+    }
+
     // WHY: all mutations share one save call so none can bypass persistence.
     private func saveContext() {
         try? modelContext.save()
@@ -138,6 +151,7 @@ final class SwiftDataDiaryEntryRepository: DiaryEntryRepository {
             modelContext.insert(newList)
             defaultList = newList
         }
+        assignMissingListColors(from: existingLists)
         assignUnownedEntries(to: defaultList.id)
         saveContext()
         loadAndPublishLists()
@@ -153,6 +167,13 @@ final class SwiftDataDiaryEntryRepository: DiaryEntryRepository {
         records.forEach { $0.listID = listID }
     }
 
+    // WHY: older list records have no color, so a stable fallback keeps migration additive and predictable.
+    private func assignMissingListColors(from records: [DiaryListRecord]) {
+        records.forEach { record in
+            if record.heatmapColorID == nil { record.heatmapColorID = "yellow" }
+        }
+    }
+
     // WHY: converts @Model reference types into plain value types so the domain
     // layer has no dependency on SwiftData.
     private func makeDiaryEntry(from record: DiaryEntryRecord) -> DiaryEntry {
@@ -161,6 +182,11 @@ final class SwiftDataDiaryEntryRepository: DiaryEntryRepository {
 
     // WHY: converts persistence references into a domain value so state remains independent of SwiftData.
     private func makeDiaryList(from record: DiaryListRecord) -> DiaryList {
-        DiaryList(id: record.id, name: record.name, createdAt: record.createdAt)
+        DiaryList(
+            id: record.id,
+            name: record.name,
+            heatmapColorID: record.heatmapColorID ?? "yellow",
+            createdAt: record.createdAt
+        )
     }
 }

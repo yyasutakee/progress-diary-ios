@@ -69,4 +69,9 @@ extension AppStore {
         guard state.lists.count > 1 else { return }
         diaryEntryRepository.deleteList(list)
     }
+
+    // WHY: routes color changes through persistence so every page observes the same saved list identity.
+    func updateListHeatmapColor(listID: UUID, colorID: String) {
+        diaryEntryRepository.updateListHeatmapColor(listID: listID, colorID: colorID)
+    }
 }
