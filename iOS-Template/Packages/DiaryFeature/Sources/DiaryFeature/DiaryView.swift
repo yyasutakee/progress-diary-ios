@@ -17,11 +17,6 @@ public struct DiaryView<Model: DiaryViewModel>: View {
                 .toolbar {
                     listMenu
                 }
-                .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
-                    floatingAddEntryButton
-                        .padding(.trailing, 16)
-                        .padding(.bottom, 8)
-                }
                 .sheet(isPresented: addEntryBinding) {
                     AddEntrySheet(model: model)
                 }
@@ -66,6 +61,11 @@ public struct DiaryView<Model: DiaryViewModel>: View {
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
+        .overlay(alignment: .bottomTrailing) {
+            floatingAddEntryButton
+                .padding(.trailing, 16)
+                .padding(.bottom, 16)
+        }
     }
 
     private func entryList(for list: DiaryListItem) -> some View {
