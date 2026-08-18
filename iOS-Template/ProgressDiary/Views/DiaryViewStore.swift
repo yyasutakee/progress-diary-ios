@@ -8,8 +8,10 @@ final class DiaryViewStore: DiaryViewModel {
     @Published private(set) var entriesByListID: [UUID: [DiaryEntryItem]] = [:]
     @Published private(set) var activeDayKeysByListID: [UUID: Set<String>] = [:]
     @Published private(set) var selectedListID: UUID? = nil
+    @Published private(set) var editingListID: UUID? = nil
     @Published var isShowingAddEntry: Bool = false
     @Published var isShowingAddList: Bool = false
+    @Published var isShowingListSettings: Bool = false
 
     private let appStore: AppStore
     private var cancellables: Set<AnyCancellable> = Set<AnyCancellable>()
@@ -54,6 +56,13 @@ final class DiaryViewStore: DiaryViewModel {
             isShowingAddList = false
         case .deleteList(let id):
             deleteListMatchingID(id)
+        case .listSettingsTapped(let id):
+            editingListID = id
+            isShowingListSettings = true
+        case .heatmapColorSelected(let colorID):
+            guard let editingListID else { return }
+            appStore.updateListHeatmapColor(listID: editingListID, colorID: colorID)
+            isShowingListSettings = false
         }
     }
 
@@ -86,7 +95,7 @@ final class DiaryViewStore: DiaryViewModel {
 
     // WHY: maps list names into the package-owned shape so persistence identifiers stay outside the feature package.
     private func makeDiaryListItem(from list: DiaryList) -> DiaryListItem {
-        DiaryListItem(id: list.id, name: list.name)
+        DiaryListItem(id: list.id, name: list.name, heatmapColorID: list.heatmapColorID)
     }
 
     // WHY: builds a set of date strings so the heatmap can check membership
