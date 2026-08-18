@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 
 class AppStore: Store<AppState> {
     private let diaryEntryRepository: any DiaryEntryRepository
