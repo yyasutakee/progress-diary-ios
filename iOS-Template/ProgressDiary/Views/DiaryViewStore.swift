@@ -8,10 +8,12 @@ final class DiaryViewStore: DiaryViewModel {
     @Published private(set) var entriesByListID: [UUID: [DiaryEntryItem]] = [:]
     @Published private(set) var activeDayKeysByListID: [UUID: Set<String>] = [:]
     @Published private(set) var selectedListID: UUID? = nil
+    @Published private(set) var currentListName: String = ""
     @Published private(set) var editingListID: UUID? = nil
     @Published var isShowingAddEntry: Bool = false
     @Published var isShowingAddList: Bool = false
     @Published var isShowingListSettings: Bool = false
+    @Published var isShowingDeleteListConfirmation: Bool = false
 
     private let appStore: AppStore
     private var cancellables: Set<AnyCancellable> = Set<AnyCancellable>()
@@ -63,6 +65,12 @@ final class DiaryViewStore: DiaryViewModel {
             guard let editingListID else { return }
             appStore.updateListHeatmapColor(listID: editingListID, colorID: colorID)
             isShowingListSettings = false
+        case .deleteCurrentListRequested:
+            isShowingDeleteListConfirmation = true
+        case .deleteCurrentListConfirmed:
+            guard let selectedListID else { return }
+            deleteListMatchingID(selectedListID)
+            isShowingDeleteListConfirmation = false
         }
     }
 
@@ -81,6 +89,7 @@ final class DiaryViewStore: DiaryViewModel {
         entriesByListID = buildEntriesByListID(from: state.entries)
         activeDayKeysByListID = buildActiveDayKeysByListID(from: state.entries)
         selectedListID = state.selectedListID
+        currentListName = makeCurrentListName(from: state)
     }
 
     // WHY: maps the domain value type to a display-only model so DiaryFeature
@@ -96,6 +105,13 @@ final class DiaryViewStore: DiaryViewModel {
     // WHY: maps list names into the package-owned shape so persistence identifiers stay outside the feature package.
     private func makeDiaryListItem(from list: DiaryList) -> DiaryListItem {
         DiaryListItem(id: list.id, name: list.name, heatmapColorID: list.heatmapColorID)
+    }
+
+    // WHY: keeps the navigation label derived from the same state snapshot as the selected page.
+    private func makeCurrentListName(from state: AppState) -> String {
+        guard let selectedListID = state.selectedListID,
+              let selectedList = state.lists.first(where: { $0.id == selectedListID }) else { return "Progress Diary" }
+        return selectedList.name
     }
 
     // WHY: builds a set of date strings so the heatmap can check membership

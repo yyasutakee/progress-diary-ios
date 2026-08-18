@@ -13,7 +13,7 @@ public struct DiaryView<Model: DiaryViewModel>: View {
     public var body: some View {
         NavigationStack {
             mainContent
-                .navigationTitle("Progress Diary")
+                .navigationTitle(model.currentListName)
                 .toolbar {
                     listMenu
                     addEntryButton
@@ -26,6 +26,14 @@ public struct DiaryView<Model: DiaryViewModel>: View {
                 }
                 .sheet(isPresented: listSettingsBinding) {
                     listSettingsSheet
+                }
+                .alert("Delete \(model.currentListName)?", isPresented: deleteListConfirmationBinding) {
+                    Button("Cancel", role: .cancel) { }
+                    Button("Delete", role: .destructive) {
+                        model.send(.deleteCurrentListConfirmed)
+                    }
+                } message: {
+                    Text("All entries in this list will be deleted.")
                 }
         }
     }
@@ -101,11 +109,15 @@ public struct DiaryView<Model: DiaryViewModel>: View {
                 } label: {
                     Label("New List", systemImage: "plus")
                 }
-                if model.lists.count > 1, let selectedListID = model.selectedListID {
-                    Button(role: .destructive) {
-                        model.send(.deleteList(selectedListID))
+                if model.lists.count > 1 {
+                    Menu {
+                        Button(role: .destructive) {
+                            model.send(.deleteCurrentListRequested)
+                        } label: {
+                            Label("Delete Current List", systemImage: "trash")
+                        }
                     } label: {
-                        Label("Delete Current List", systemImage: "trash")
+                        Label("Delete", systemImage: "trash")
                     }
                 }
             } label: {
@@ -142,6 +154,13 @@ public struct DiaryView<Model: DiaryViewModel>: View {
 
     private var listSettingsBinding: Binding<Bool> {
         Binding(get: { model.isShowingListSettings }, set: { model.isShowingListSettings = $0 })
+    }
+
+    private var deleteListConfirmationBinding: Binding<Bool> {
+        Binding(
+            get: { model.isShowingDeleteListConfirmation },
+            set: { model.isShowingDeleteListConfirmation = $0 }
+        )
     }
 
     @ViewBuilder
