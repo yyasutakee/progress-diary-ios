@@ -16,7 +16,11 @@ public struct DiaryView<Model: DiaryViewModel>: View {
                 .navigationTitle(model.currentListName)
                 .toolbar {
                     listMenu
-                    addEntryButton
+                }
+                .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
+                    floatingAddEntryButton
+                        .padding(.trailing, 16)
+                        .padding(.bottom, 8)
                 }
                 .sheet(isPresented: addEntryBinding) {
                     AddEntrySheet(model: model)
@@ -128,17 +132,19 @@ public struct DiaryView<Model: DiaryViewModel>: View {
         }
     }
 
-    private var addEntryButton: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                presentAddEntrySheet()
-            } label: {
-                Image(systemName: "plus")
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .sensoryFeedback(.impact(weight: .light), trigger: addEntryHapticTrigger)
+    private var floatingAddEntryButton: some View {
+        Button {
+            presentAddEntrySheet()
+        } label: {
+            Image(systemName: "plus")
+                .font(.system(size: 22, weight: .semibold))
+                .frame(width: 56, height: 56)
+                .contentShape(Circle())
         }
+        .foregroundStyle(.primary)
+        .buttonStyle(.plain)
+        .glassEffect(.regular, in: .circle)
+        .sensoryFeedback(.impact(weight: .light), trigger: addEntryHapticTrigger)
     }
 
     private var addEntryBinding: Binding<Bool> {
