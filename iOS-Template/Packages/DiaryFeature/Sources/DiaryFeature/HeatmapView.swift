@@ -57,10 +57,25 @@ public struct HeatmapView: View {
         }
     }
 
+    @ViewBuilder
     private func dayCellShape(for date: Date?) -> some View {
         RoundedRectangle(cornerRadius: 2)
             .fill(dayCellColor(for: date))
             .frame(width: cellSize, height: cellSize)
+            .overlay {
+                if let date {
+                    todayRing(for: date)
+                }
+            }
+    }
+
+    @ViewBuilder
+    private func todayRing(for date: Date) -> some View {
+        if isToday(date) {
+            RoundedRectangle(cornerRadius: 2)
+                .stroke(Color.primary, lineWidth: 2)
+                .frame(width: cellSize + 2, height: cellSize + 2)
+        }
     }
 
     private func dayCellColor(for date: Date?) -> Color {
@@ -70,6 +85,10 @@ public struct HeatmapView: View {
 
     private func isDayActive(_ date: Date) -> Bool {
         activeDayKeys.contains(makeDayKey(for: date))
+    }
+
+    private func isToday(_ date: Date) -> Bool {
+        makeDayKey(for: date) == makeDayKey(for: Date())
     }
 
     private func makeDayKey(for date: Date) -> String {
