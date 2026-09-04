@@ -41,7 +41,11 @@ public struct DiaryView<Model: DiaryViewModel>: View {
     @ViewBuilder
     private var streakBadge: some View {
         if let streak: DiaryStreakItem = model.selectedListStreak {
-            Label("\(streak.currentDays) day streak", systemImage: "flame.fill")
+            HStack(spacing: 4) {
+                Image(systemName: "flame.fill")
+                Text("\(streak.currentDays)")
+                    .monospacedDigit()
+            }
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.orange)
                 .accessibilityLabel("\(streak.currentDays) day streak")
