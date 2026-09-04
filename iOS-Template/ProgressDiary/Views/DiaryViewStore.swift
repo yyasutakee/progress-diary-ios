@@ -118,10 +118,12 @@ final class DiaryViewStore: DiaryViewModel {
     private func buildStreakByListID(from state: AppState) -> [UUID: DiaryStreakItem] {
         let enabledListIDs: Set<UUID> = Set(state.lists.filter { $0.isStreakEnabled }.map { $0.id })
         let entriesByListID: [UUID: [DiaryEntry]] = Dictionary(grouping: state.entries, by: { $0.listID })
-        return enabledListIDs.reduce(into: [UUID: DiaryStreakItem]()) { result: inout [UUID: DiaryStreakItem], listID: UUID in
+        var streakByListID: [UUID: DiaryStreakItem] = [:]
+        for listID: UUID in enabledListIDs {
             let streak: DiaryStreak = DiaryStreakCalculator.calculate(from: entriesByListID[listID] ?? [])
-            result[listID] = DiaryStreakItem(currentDays: streak.currentDays, longestDays: streak.longestDays, hasEntryToday: streak.hasEntryToday, nextEntryDays: streak.nextEntryDays)
+            streakByListID[listID] = DiaryStreakItem(currentDays: streak.currentDays, longestDays: streak.longestDays, hasEntryToday: streak.hasEntryToday, nextEntryDays: streak.nextEntryDays)
         }
+        return streakByListID
     }
 
     // WHY: keeps the navigation label derived from the same state snapshot as the selected page.

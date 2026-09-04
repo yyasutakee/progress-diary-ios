@@ -36,11 +36,18 @@ struct DiaryStreakCalculator {
     }
 
     private static func longestConsecutiveDays(in activeDays: Set<Date>, calendar: Calendar) -> Int {
-        activeDays.reduce(0) { longest: Int, day: Date in
-            let startsRun: Bool = !activeDays.contains(calendar.date(byAdding: .day, value: -1, to: day) ?? day)
-            guard startsRun else { return longest }
-            return max(longest, consecutiveDays(endingAt: lastActiveDay(startingAt: day, in: activeDays, calendar: calendar), in: activeDays, calendar: calendar))
+        var longestDays: Int = 0
+        for day: Date in activeDays {
+            guard isFirstDayOfRun(day, in: activeDays, calendar: calendar) else { continue }
+            let lastDay: Date = lastActiveDay(startingAt: day, in: activeDays, calendar: calendar)
+            longestDays = max(longestDays, consecutiveDays(endingAt: lastDay, in: activeDays, calendar: calendar))
         }
+        return longestDays
+    }
+
+    private static func isFirstDayOfRun(_ day: Date, in activeDays: Set<Date>, calendar: Calendar) -> Bool {
+        guard let previousDay: Date = calendar.date(byAdding: .day, value: -1, to: day) else { return true }
+        return !activeDays.contains(previousDay)
     }
 
     private static func lastActiveDay(startingAt startDay: Date, in activeDays: Set<Date>, calendar: Calendar) -> Date {
