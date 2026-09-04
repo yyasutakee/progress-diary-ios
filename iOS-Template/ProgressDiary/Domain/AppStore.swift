@@ -74,4 +74,9 @@ extension AppStore {
     func updateListHeatmapColor(listID: UUID, colorID: String) {
         diaryEntryRepository.updateListHeatmapColor(listID: listID, colorID: colorID)
     }
+
+    // WHY: routes the category-specific preference through the persistence boundary.
+    func updateListStreakEnabled(listID: UUID, isEnabled: Bool) {
+        diaryEntryRepository.updateListStreakEnabled(listID: listID, isEnabled: isEnabled)
+    }
 }

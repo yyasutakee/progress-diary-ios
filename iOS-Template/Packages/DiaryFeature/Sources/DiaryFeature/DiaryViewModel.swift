@@ -6,6 +6,8 @@ public protocol DiaryViewModel: ObservableObject {
     var lists: [DiaryListItem] { get }
     var entriesByListID: [UUID: [DiaryEntryItem]] { get }
     var activeDayKeysByListID: [UUID: Set<String>] { get }
+    var streakByListID: [UUID: DiaryStreakItem] { get }
+    var selectedListStreak: DiaryStreakItem? { get }
     var selectedListID: UUID? { get }
     var currentListName: String { get }
     var editingListID: UUID? { get }

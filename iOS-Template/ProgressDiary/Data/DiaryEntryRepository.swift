@@ -9,4 +9,5 @@ protocol DiaryEntryRepository {
     func addList(name: String)
     func deleteList(_ list: DiaryList)
     func updateListHeatmapColor(listID: UUID, colorID: String)
+    func updateListStreakEnabled(listID: UUID, isEnabled: Bool)
 }

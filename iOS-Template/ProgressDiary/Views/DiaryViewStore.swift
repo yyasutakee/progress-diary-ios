@@ -7,6 +7,8 @@ final class DiaryViewStore: DiaryViewModel {
     @Published private(set) var lists: [DiaryListItem] = []
     @Published private(set) var entriesByListID: [UUID: [DiaryEntryItem]] = [:]
     @Published private(set) var activeDayKeysByListID: [UUID: Set<String>] = [:]
+    @Published private(set) var streakByListID: [UUID: DiaryStreakItem] = [:]
+    @Published private(set) var selectedListStreak: DiaryStreakItem? = nil
     @Published private(set) var selectedListID: UUID? = nil
     @Published private(set) var currentListName: String = ""
     @Published private(set) var editingListID: UUID? = nil
@@ -65,6 +67,9 @@ final class DiaryViewStore: DiaryViewModel {
             guard let editingListID else { return }
             appStore.updateListHeatmapColor(listID: editingListID, colorID: colorID)
             isShowingListSettings = false
+        case .streakTrackingChanged(let isEnabled):
+            guard let editingListID else { return }
+            appStore.updateListStreakEnabled(listID: editingListID, isEnabled: isEnabled)
         case .deleteCurrentListRequested:
             isShowingDeleteListConfirmation = true
         case .deleteCurrentListConfirmed:
@@ -90,6 +95,8 @@ final class DiaryViewStore: DiaryViewModel {
         activeDayKeysByListID = buildActiveDayKeysByListID(from: state.entries)
         selectedListID = state.selectedListID
         currentListName = makeCurrentListName(from: state)
+        streakByListID = buildStreakByListID(from: state)
+        selectedListStreak = state.selectedListID.flatMap { streakByListID[$0] }
     }
 
     // WHY: maps the domain value type to a display-only model so DiaryFeature
@@ -104,7 +111,17 @@ final class DiaryViewStore: DiaryViewModel {
 
     // WHY: maps list names into the package-owned shape so persistence identifiers stay outside the feature package.
     private func makeDiaryListItem(from list: DiaryList) -> DiaryListItem {
-        DiaryListItem(id: list.id, name: list.name, heatmapColorID: list.heatmapColorID)
+        DiaryListItem(id: list.id, name: list.name, heatmapColorID: list.heatmapColorID, isStreakEnabled: list.isStreakEnabled)
+    }
+
+    // WHY: computes streaks only for opted-in categories so unrelated journals stay visually unchanged.
+    private func buildStreakByListID(from state: AppState) -> [UUID: DiaryStreakItem] {
+        let enabledListIDs: Set<UUID> = Set(state.lists.filter { $0.isStreakEnabled }.map { $0.id })
+        let entriesByListID: [UUID: [DiaryEntry]] = Dictionary(grouping: state.entries, by: { $0.listID })
+        return enabledListIDs.reduce(into: [UUID: DiaryStreakItem]()) { result: inout [UUID: DiaryStreakItem], listID: UUID in
+            let streak: DiaryStreak = DiaryStreakCalculator.calculate(from: entriesByListID[listID] ?? [])
+            result[listID] = DiaryStreakItem(currentDays: streak.currentDays, longestDays: streak.longestDays, hasEntryToday: streak.hasEntryToday, nextEntryDays: streak.nextEntryDays)
+        }
     }
 
     // WHY: keeps the navigation label derived from the same state snapshot as the selected page.

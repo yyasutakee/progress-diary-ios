@@ -23,6 +23,7 @@ final class DiaryListRecord {
     var id: UUID
     var name: String
     var heatmapColorID: String?
+    var isStreakEnabled: Bool?
     var createdAt: Date
 
     // WHY: gives each persisted list its own identity so pages can remain selected across state updates.
@@ -30,6 +31,7 @@ final class DiaryListRecord {
         self.id = UUID()
         self.name = name
         self.heatmapColorID = "yellow"
+        self.isStreakEnabled = false
         self.createdAt = Date()
     }
 }
@@ -115,6 +117,15 @@ final class SwiftDataDiaryEntryRepository: DiaryEntryRepository {
         loadAndPublishLists()
     }
 
+    // WHY: keeps the category's tracking preference alongside its other persisted settings.
+    func updateListStreakEnabled(listID: UUID, isEnabled: Bool) {
+        let descriptor: FetchDescriptor<DiaryListRecord> = FetchDescriptor<DiaryListRecord>(predicate: #Predicate { $0.id == listID })
+        guard let record: DiaryListRecord = try? modelContext.fetch(descriptor).first else { return }
+        record.isStreakEnabled = isEnabled
+        saveContext()
+        loadAndPublishLists()
+    }
+
     // WHY: all mutations share one save call so none can bypass persistence.
     private func saveContext() {
         try? modelContext.save()
@@ -171,6 +182,7 @@ final class SwiftDataDiaryEntryRepository: DiaryEntryRepository {
     private func assignMissingListColors(from records: [DiaryListRecord]) {
         records.forEach { record in
             if record.heatmapColorID == nil { record.heatmapColorID = "yellow" }
+            if record.isStreakEnabled == nil { record.isStreakEnabled = false }
         }
     }
 
@@ -186,6 +198,7 @@ final class SwiftDataDiaryEntryRepository: DiaryEntryRepository {
             id: record.id,
             name: record.name,
             heatmapColorID: record.heatmapColorID ?? "yellow",
+            isStreakEnabled: record.isStreakEnabled ?? false,
             createdAt: record.createdAt
         )
     }

@@ -15,6 +15,7 @@ public struct DiaryView<Model: DiaryViewModel>: View {
             mainContent
                 .navigationTitle(model.currentListName)
                 .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) { streakBadge }
                     listMenu
                 }
                 .sheet(isPresented: addEntryBinding) {
@@ -34,6 +35,16 @@ public struct DiaryView<Model: DiaryViewModel>: View {
                 } message: {
                     Text("All entries in this list will be deleted.")
                 }
+        }
+    }
+
+    @ViewBuilder
+    private var streakBadge: some View {
+        if let streak: DiaryStreakItem = model.selectedListStreak {
+            Label("\(streak.currentDays) day streak", systemImage: "flame.fill")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.orange)
+                .accessibilityLabel("\(streak.currentDays) day streak")
         }
     }
 
@@ -240,6 +251,13 @@ private struct ListSettingsSheet<Model: DiaryViewModel>: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section("Streak") {
+                    Toggle("Track Streak", isOn: Binding(get: { list.isStreakEnabled }, set: { model.send(.streakTrackingChanged($0)) }))
+                    Text("Track consecutive posting days for this category.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("Heatmap Color") {
                     LazyVGrid(columns: columns, spacing: 16) {
                         ForEach(DiaryHeatmapColor.allCases) { color in
@@ -351,6 +369,15 @@ private struct AddEntrySheet<Model: DiaryViewModel>: View {
         NavigationStack {
             Form {
                 Section {
+                    if let streak: DiaryStreakItem = model.selectedListStreak {
+                        if streak.hasEntryToday {
+                            Label("Today’s entry complete", systemImage: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                        } else {
+                            Label("Today will be day \(streak.nextEntryDays)", systemImage: "flame.fill")
+                                .foregroundStyle(.orange)
+                        }
+                    }
                     TextField("What did you progress today?", text: $text, axis: .vertical)
                         .lineLimit(3...6)
                         .focused($isEntryFieldFocused)
